@@ -1,210 +1,140 @@
 
-import hashlib
 import json
 import re
 import sys
 from datetime import datetime, timezone
 from pathlib import Path
-from urllib.parse import urljoin
 
 import requests
 from bs4 import BeautifulSoup
 
+URL_TEST = (
+    "https://www.carrefour.fr/p/"
+    "pate-a-tartiner-noisettes-et-cacao-nutella-3017620429484"
+)
 
-URL_PROMOTIONS = "https://www.carrefour.fr/promotions"
-FICHIER_SORTIE = Path("data/promotions.json")
-
-
-def nettoyer_texte(texte):
-    """Nettoie les espaces dans un texte."""
-    if not texte:
-        return ""
-
-    return re.sub(r"\s+", " ", texte).strip()
-
-
-def extraire_prix(texte):
-    """Récupère les prix en euros présents dans un texte."""
-    if not texte:
-        return []
-
-    correspondances = re.findall(
-        r"(\d{1,4}(?:[.,]\d{1,2})?)\s*€",
-        texte.replace("\u202f", " ").replace("\xa0", " "),
-    )
-
-    prix = []
-
-    for valeur in correspondances:
-        try:
-            montant = float(valeur.replace(",", "."))
-
-            if 0 < montant < 10000:
-                prix.append(montant)
-        except ValueError:
-            continue
-
-    return prix
-
-
-def trouver_nom_produit(carte):
-    """Essaie de trouver le nom du produit dans une carte."""
-    selecteurs = [
-        "[data-testid*='title']",
-        "[data-testid*='product-title']",
-        "h2",
-        "h3",
-        "h4",
-        "a[href*='/p/']",
-    ]
-
-    for selecteur in selecteurs:
-        element = carte.select_one(selecteur)
-
-        if element:
-            nom = nettoyer_texte(element.get_text(" ", strip=True))
-
-            if nom and len(nom) >= 3:
-                return nom
-
-    return ""
-
-
-def trouver_carte_produit(lien):
-    """Remonte dans le HTML pour trouver le bloc contenant le produit."""
-    parent = lien
-
-    for _ in range(8):
-        if parent is None:
-            break
-
-        texte = nettoyer_texte(parent.get_text(" ", strip=True))
-
-        if extraire_prix(texte):
-            return parent
-
-        parent = parent.parent
-
-    return lien.parent if lien.parent else lien
-
-
-def collecter_promotions():
-    """Télécharge la page Carrefour et tente d'extraire les offres."""
-    print(f"Récupération de la page : {URL_PROMOTIONS}")
-
-    entetes = {
+def main():
+    headers = {
         "User-Agent": (
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
             "AppleWebKit/537.36 (KHTML, like Gecko) "
-            "Chrome/130.0.0.0 Safari/537.36"
+            "Chrome/131.0.0.0 Safari/537.36"
         ),
-        "Accept-Language": "fr-FR,fr;q=0.9,en;q=0.8",
+        "Accept-Language": "fr-FR,fr;q=0.9",
     }
 
-    reponse = requests.get(
-        URL_PROMOTIONS,
-        headers=entetes,
+    print("Test de la fiche produit Carrefour...")
+
+    response = requests.get(
+        URL_TEST,
+        headers=headers,
         timeout=30,
     )
 
-    reponse.raise_for_status()
+    print("Code HTTP :", response.status_code)
+    response.raise_for_status()
 
-    soup = BeautifulSoup(reponse.text, "html.parser")
+    soup = BeautifulSoup(response.text, "html.parser")
 
-    offres = []
-    urls_vues = set()
+    # Recherche des données structurées du produit.
+    product = {}
 
-    liens_produits = soup.select("a[href*='/p/']")
+    for script in soup.find_all("script", type="application/ld+json"):
+        try:
+            data = json.loads(script.string or script.get_text())
 
-    print(f"Liens produits repérés : {len(liens_produits)}")
+            elements = data if isinstance(data, list) else [data]
 
-    for lien in liens_produits:
-        url = urljoin(URL_PROMOTIONS, lien.get("href", ""))
+            for element in elements:
+                if isinstance(element, dict) and element.get("@type") == "Product":
+                    product = element
+                    break
 
-        if not url.startswith("https://www.carrefour.fr/"):
+                if isinstance(element, dict) and isinstance(element.get("@graph"), list):
+                    for item in element["@graph"]:
+                        if isinstance(item, dict) and item.get("@type") == "Product":
+                            product = item
+                            break
+
+            if product:
+                break
+
+        except (json.JSONDecodeError, TypeError):
             continue
 
-        if url in urls_vues:
-            continue
+    nom = product.get("name", "")
+    prix = None
+    devise = "EUR"
 
-        urls_vues.add(url)
+    offres = product.get("offers", {})
 
-        carte = trouver_carte_produit(lien)
-        texte_carte = nettoyer_texte(carte.get_text(" ", strip=True))
-        prix_trouves = extraire_prix(texte_carte)
+    if isinstance(offres, list):
+        offres = offres[0] if offres else {}
 
-        if not prix_trouves:
-            continue
+    if isinstance(offres, dict):
+        prix_brut = offres.get("price")
 
-        nom = trouver_nom_produit(carte)
+        if prix_brut is not None:
+            try:
+                prix = float(str(prix_brut).replace(",", "."))
+            except ValueError:
+                pass
 
-        if not nom:
-            nom = nettoyer_texte(lien.get_text(" ", strip=True))
+        devise = offres.get("priceCurrency", "EUR")
 
-        if not nom:
-            continue
+    if not nom:
+        titre = soup.find("h1")
+        if titre:
+            nom = titre.get_text(" ", strip=True)
 
-        prix = prix_trouves[-1]
+    print("Produit détecté :", nom or "non trouvé")
+    print("Prix détecté :", prix if prix is not None else "non trouvé", devise)
 
-        offre = {
-            "id": "carrefour-" + hashlib.sha1(
-                url.encode("utf-8")
-            ).hexdigest()[:12],
+    # Ce test ne publie pas de prix non confirmé.
+    if not nom:
+        raise RuntimeError(
+            "La page est accessible, mais le nom du produit n'a pas été détecté."
+        )
+
+    if prix is None:
+        print(
+            "La page est accessible, mais le prix n'est pas présent "
+            "dans les données structurées."
+        )
+
+    Path("data").mkdir(exist_ok=True)
+
+    data = {
+        "source": URL_TEST,
+        "updatedAt": datetime.now(timezone.utc).isoformat(),
+        "count": 1 if prix is not None else 0,
+        "offers": [],
+    }
+
+    if prix is not None:
+        data["offers"].append({
+            "id": "carrefour-nutella-3017620429484",
             "product": nom,
             "store": "Carrefour",
             "price": prix,
             "quantity": 1,
             "unit": "unité",
             "endDate": "",
-            "url": url,
+            "url": URL_TEST,
             "notes": "",
             "unitPrice": None,
             "unitPriceUnit": None,
-            "source": URL_PROMOTIONS,
-        }
+            "source": URL_TEST,
+        })
 
-        offres.append(offre)
+    with open("data/promotions.json", "w", encoding="utf-8") as file:
+        json.dump(data, file, ensure_ascii=False, indent=2)
 
-    # Évite les doublons éventuels.
-    offres_uniques = []
-    identifiants_vus = set()
-
-    for offre in offres:
-        if offre["id"] not in identifiants_vus:
-            identifiants_vus.add(offre["id"])
-            offres_uniques.append(offre)
-
-    if not offres_uniques:
-        raise RuntimeError(
-            "Aucune promotion détectée. Carrefour a peut-être modifié "
-            "sa page ou chargé les produits avec JavaScript. "
-            "Consulte les journaux de cette exécution dans GitHub Actions."
-        )
-
-    FICHIER_SORTIE.parent.mkdir(parents=True, exist_ok=True)
-
-    donnees = {
-        "source": URL_PROMOTIONS,
-        "updatedAt": datetime.now(timezone.utc).isoformat(),
-        "count": len(offres_uniques),
-        "offers": offres_uniques,
-    }
-
-    with FICHIER_SORTIE.open("w", encoding="utf-8") as fichier:
-        json.dump(
-            donnees,
-            fichier,
-            ensure_ascii=False,
-            indent=2,
-        )
-
-    print(f"Promotions enregistrées : {len(offres_uniques)}")
-    print(f"Fichier créé : {FICHIER_SORTIE}")
-
+    print("Test terminé. Fichier data/promotions.json mis à jour.")
 
 if __name__ == "__main__":
     try:
-        collecter_promotions()
-    except Exception as erreur:
-        print(f"ERREUR : {erreur}", file=sys.stderr)
+        main()
+    except Exception as error:
+        print("ERREUR :", error, file=sys.stderr)
         sys.exit(1)
