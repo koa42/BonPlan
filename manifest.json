@@ -1,0 +1,23 @@
+
+{
+  "id": "/BonPlan/",
+  "name": "BonPlan - Comparateur de courses",
+  "short_name": "BonPlan",
+  "description": "Compare les promotions, gère tes cartes de fidélité et prépare tes courses.",
+  "lang": "fr-FR",
+  "start_url": "/BonPlan/",
+  "scope": "/BonPlan/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#f5f7f5",
+  "theme_color": "#176b4d",
+  "categories": ["shopping", "lifestyle", "utilities"],
+  "icons": [
+    {
+      "src": "./logo.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}
