@@ -21,16 +21,19 @@
     }
 
     * { box-sizing: border-box; }
+
     body {
       margin: 0;
       font-family: Arial, Helvetica, sans-serif;
       background: var(--bg);
       color: var(--text);
     }
+
     button, input, select { font: inherit; }
     button, a { -webkit-tap-highlight-color: transparent; }
     button { cursor: pointer; }
     a { color: var(--green); }
+
     .topbar {
       background: var(--green);
       color: white;
@@ -40,6 +43,7 @@
       z-index: 10;
       box-shadow: 0 2px 8px #0001;
     }
+
     .topbar-inner {
       max-width: 1120px;
       margin: auto;
@@ -48,9 +52,11 @@
       justify-content: space-between;
       gap: 18px;
     }
+
     .brand { font-size: 24px; font-weight: 800; letter-spacing: -.5px; }
     .brand span { color: #c7f4d9; }
     .subtitle { font-size: 12px; opacity: .85; margin-top: 4px; }
+
     .menu-button {
       display: none;
       background: transparent;
@@ -59,7 +65,9 @@
       border-radius: 9px;
       padding: 8px 12px;
     }
+
     nav { display: flex; flex-wrap: wrap; gap: 6px; }
+
     nav button {
       color: white;
       background: transparent;
@@ -67,10 +75,18 @@
       padding: 10px 12px;
       border-radius: 9px;
     }
+
     nav button:hover, nav button.active { background: #ffffff25; }
-    main { max-width: 1120px; padding: 25px 18px 55px; margin: auto; }
+
+    main {
+      max-width: 1120px;
+      padding: 25px 18px 55px;
+      margin: auto;
+    }
+
     .page { display: none; }
     .page.active { display: block; }
+
     .hero {
       border-radius: 22px;
       padding: 30px;
@@ -78,9 +94,26 @@
       background: linear-gradient(120deg, #176b4d, #25865d);
       margin-bottom: 23px;
     }
-    .hero h1 { margin: 0 0 10px; font-size: clamp(26px, 4vw, 38px); }
-    .hero p { margin: 0; line-height: 1.6; max-width: 720px; opacity: .95; }
-    .hero-search { display: flex; gap: 9px; margin-top: 22px; max-width: 700px; }
+
+    .hero h1 {
+      margin: 0 0 10px;
+      font-size: clamp(26px, 4vw, 38px);
+    }
+
+    .hero p {
+      margin: 0;
+      line-height: 1.6;
+      max-width: 720px;
+      opacity: .95;
+    }
+
+    .hero-search {
+      display: flex;
+      gap: 9px;
+      margin-top: 22px;
+      max-width: 700px;
+    }
+
     input, select {
       min-width: 0;
       width: 100%;
@@ -90,8 +123,14 @@
       padding: 12px 13px;
       color: var(--text);
     }
-    input:focus, select:focus { outline: 2px solid #87cba7; border-color: var(--green); }
+
+    input:focus, select:focus {
+      outline: 2px solid #87cba7;
+      border-color: var(--green);
+    }
+
     .hero-search input { flex: 1; }
+
     .btn {
       border: 0;
       border-radius: 10px;
@@ -105,11 +144,13 @@
       justify-content: center;
       gap: 7px;
     }
+
     .btn:hover { background: var(--green-dark); }
     .btn.light { background: white; color: var(--green-dark); }
     .btn.secondary { background: var(--green-light); color: var(--green-dark); }
     .btn.danger { background: #fff0f0; color: var(--red); }
     .btn.small { padding: 8px 10px; font-size: 13px; }
+
     .section-title {
       display: flex;
       justify-content: space-between;
@@ -117,13 +158,21 @@
       gap: 12px;
       margin: 24px 0 14px;
     }
+
     h2 { font-size: 23px; margin: 0; }
     h3 { font-size: 17px; margin: 0 0 10px; }
     p { line-height: 1.55; }
     .muted { color: var(--muted); }
     .small-text { font-size: 13px; }
-    .grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+      gap: 14px;
+    }
+
     .stats { margin-bottom: 24px; }
+
     .stat, .card, .offer, .product-result {
       background: white;
       border: 1px solid var(--border);
@@ -131,7 +180,13 @@
       padding: 17px;
       min-width: 0;
     }
-    .stat strong { display: block; font-size: 26px; margin-top: 7px; }
+
+    .stat strong {
+      display: block;
+      font-size: 26px;
+      margin-top: 7px;
+    }
+
     .panel {
       background: white;
       border: 1px solid var(--border);
@@ -139,11 +194,24 @@
       padding: 20px;
       margin-bottom: 18px;
     }
-    .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 13px; }
+
+    .form-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 13px;
+    }
+
     .field { display: flex; flex-direction: column; gap: 6px; }
     .field label { font-size: 13px; font-weight: 700; }
     .field.full { grid-column: 1 / -1; }
-    .actions { display: flex; flex-wrap: wrap; gap: 9px; margin-top: 14px; }
+
+    .actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 9px;
+      margin-top: 14px;
+    }
+
     .empty {
       padding: 25px 12px;
       text-align: center;
@@ -151,6 +219,7 @@
       border: 1px dashed var(--border);
       border-radius: 12px;
     }
+
     .pill {
       display: inline-block;
       font-size: 12px;
@@ -160,14 +229,50 @@
       background: var(--green-light);
       color: var(--green-dark);
     }
+
     .pill.orange { background: var(--orange); color: #8a5708; }
-    .offer-list, .result-list { display: grid; gap: 12px; }
-    .offer-top { display: flex; justify-content: space-between; gap: 12px; align-items: flex-start; }
+
+    .offer-list, .result-list {
+      display: grid;
+      gap: 12px;
+    }
+
+    .offer-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 12px;
+      align-items: flex-start;
+    }
+
     .price { font-size: 25px; font-weight: 800; color: var(--green-dark); }
-    .offer-meta { color: var(--muted); font-size: 13px; line-height: 1.6; margin: 8px 0; }
-    .offer-actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; }
-    .search-tools { display: grid; grid-template-columns: minmax(0, 1fr) 210px; gap: 10px; margin: 14px 0; }
-    .official-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+
+    .offer-meta {
+      color: var(--muted);
+      font-size: 13px;
+      line-height: 1.6;
+      margin: 8px 0;
+    }
+
+    .offer-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 12px;
+    }
+
+    .search-tools {
+      display: grid;
+      grid-template-columns: minmax(0, 1fr) 210px;
+      gap: 10px;
+      margin: 14px 0;
+    }
+
+    .official-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
+    }
+
     .official-link {
       background: white;
       border: 1px solid var(--border);
@@ -177,8 +282,10 @@
       color: var(--text);
       display: block;
     }
+
     .official-link:hover { border-color: var(--green); }
     .official-link strong { display: block; margin-bottom: 5px; }
+
     .notice {
       border-radius: 12px;
       background: #fff7e8;
@@ -189,31 +296,109 @@
       line-height: 1.55;
       margin: 15px 0;
     }
+
     .success-notice {
       background: var(--green-light);
       border-color: #cce7d6;
       color: var(--green-dark);
     }
+
     .card-row { display: flex; align-items: center; gap: 12px; }
+
     .card-symbol {
-      width: 48px; height: 48px; border-radius: 12px;
-      display: grid; place-items: center; font-size: 23px; flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      display: grid;
+      place-items: center;
+      font-size: 23px;
+      flex-shrink: 0;
     }
+
     .card-row > div:nth-child(2) { flex: 1; min-width: 0; }
-    .course-row { display: flex; gap: 10px; align-items: center; padding: 12px 0; border-bottom: 1px solid var(--border); }
+
+    .course-row {
+      display: flex;
+      gap: 10px;
+      align-items: center;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border);
+    }
+
     .course-row:last-child { border-bottom: 0; }
     .course-row input[type="checkbox"] { width: 19px; height: 19px; }
-    .course-name { flex: 1; min-width: 0; overflow-wrap: anywhere; }
-    .course-name.checked { text-decoration: line-through; color: var(--muted); }
-    .progress-track { height: 8px; background: #e6ece7; border-radius: 999px; overflow: hidden; margin-top: 9px; }
-    .progress-bar { height: 100%; width: 0; background: var(--green); transition: width .2s; }
-    footer { text-align: center; color: var(--muted); padding: 22px; font-size: 12px; }
-    #toast {
-      position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%);
-      background: #1c2821; color: white; padding: 12px 18px; border-radius: 10px;
-      z-index: 99; display: none; max-width: calc(100% - 30px); text-align: center;
+
+    .course-name {
+      flex: 1;
+      min-width: 0;
+      overflow-wrap: anywhere;
     }
+
+    .course-name.checked {
+      text-decoration: line-through;
+      color: var(--muted);
+    }
+
+    .progress-track {
+      height: 8px;
+      background: #e6ece7;
+      border-radius: 999px;
+      overflow: hidden;
+      margin-top: 9px;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0;
+      background: var(--green);
+      transition: width .2s;
+    }
+
+    /* Recherche dans la liste de courses */
+    .course-search {
+      margin-bottom: 16px;
+    }
+
+    .course-search input {
+      background: #fbfdfb;
+      border: 1px solid var(--border);
+      padding: 14px;
+    }
+
+    .course-search input:focus {
+      background: white;
+    }
+
+    .course-search-hint {
+      font-size: 12px;
+      color: var(--muted);
+      margin: 6px 0 0;
+    }
+
+    footer {
+      text-align: center;
+      color: var(--muted);
+      padding: 22px;
+      font-size: 12px;
+    }
+
+    #toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: #1c2821;
+      color: white;
+      padding: 12px 18px;
+      border-radius: 10px;
+      z-index: 99;
+      display: none;
+      max-width: calc(100% - 30px);
+      text-align: center;
+    }
+
     #toast.show { display: block; }
+
     @media (max-width: 760px) {
       .topbar-inner { align-items: flex-start; }
       .menu-button { display: block; }
@@ -232,13 +417,16 @@
   </style>
 </head>
 <body>
+
 <header class="topbar">
   <div class="topbar-inner">
     <div>
       <div class="brand">🛒 Bon<span>Plan</span></div>
       <div class="subtitle">Tes courses au meilleur prix</div>
     </div>
+
     <button class="menu-button" id="mobile-menu" type="button">☰ Menu</button>
+
     <nav id="main-nav">
       <button class="active" data-page="accueil" type="button">Accueil</button>
       <button data-page="promotions" type="button">Comparer</button>
@@ -254,6 +442,7 @@
     <div class="hero">
       <h1>Achète mieux, dépense moins.</h1>
       <p>Recherche un produit, compare les prix et trouve les offres disponibles en magasin ou sur Internet.</p>
+
       <form class="hero-search" id="form-recherche-accueil">
         <input id="recherche-accueil" type="search" placeholder="Ex. : papier toilette, lessive, pâtes…" aria-label="Produit à rechercher" required>
         <button class="btn light" type="submit">🔎 Rechercher</button>
@@ -268,6 +457,7 @@
 
     <div class="section-title"><h2>Rechercher dans les enseignes</h2></div>
     <p class="muted">Choisis un produit : BonPlan préparera les recherches vers les sites des enseignes. Les prix trouvés sur leurs sites devront être vérifiés sur la page de l'offre.</p>
+
     <div class="official-grid">
       <a class="official-link" id="home-carrefour" href="https://www.carrefour.fr/" target="_blank" rel="noopener"><strong>🔵 Carrefour</strong><span class="muted small-text">Rechercher des produits et promotions</span></a>
       <a class="official-link" id="home-intermarche" href="https://www.intermarche.com/" target="_blank" rel="noopener"><strong>🔴 Intermarché</strong><span class="muted small-text">Consulter les offres et le catalogue</span></a>
@@ -276,6 +466,7 @@
     </div>
 
     <div class="section-title"><h2>Accès rapide</h2></div>
+
     <div class="grid">
       <div class="card"><h3>🔎 Comparer un produit</h3><p class="muted small-text">Recherche un produit et ouvre les recherches ciblées.</p><button class="btn" data-page="promotions" type="button">Comparer</button></div>
       <div class="card"><h3>🏷️ Enregistrer une offre</h3><p class="muted small-text">Ajoute les prix que tu as trouvés pour les comparer.</p><button class="btn" data-page="offres" type="button">Mes offres</button></div>
@@ -285,8 +476,12 @@
 
   <section class="page" id="page-promotions">
     <div class="section-title">
-      <div><h2>Comparer un produit</h2><p class="muted">Compare les offres enregistrées et lance des recherches chez les enseignes.</p></div>
+      <div>
+        <h2>Comparer un produit</h2>
+        <p class="muted">Compare les offres enregistrées et lance des recherches chez les enseignes.</p>
+      </div>
     </div>
+
     <div class="panel">
       <form id="form-recherche">
         <div class="form-grid">
@@ -294,6 +489,7 @@
             <label for="recherche-produit">Quel produit recherches-tu ?</label>
             <input id="recherche-produit" type="search" placeholder="Ex. : papier toilette Lotus, lessive…" required>
           </div>
+
           <div class="field">
             <label for="recherche-zone">Zone de recherche</label>
             <select id="recherche-zone">
@@ -302,6 +498,7 @@
               <option value="both" selected>Magasins locaux et en ligne</option>
             </select>
           </div>
+
           <div class="field">
             <label for="recherche-tri">Classer les offres enregistrées</label>
             <select id="recherche-tri">
@@ -311,7 +508,11 @@
             </select>
           </div>
         </div>
-        <div class="actions"><button class="btn" type="submit">🔎 Lancer la recherche</button><button class="btn secondary" id="effacer-recherche" type="button">Effacer</button></div>
+
+        <div class="actions">
+          <button class="btn" type="submit">🔎 Lancer la recherche</button>
+          <button class="btn secondary" id="effacer-recherche" type="button">Effacer</button>
+        </div>
       </form>
     </div>
 
@@ -323,82 +524,288 @@
       <div class="offer-list" id="resultats-comparateur"></div>
     </div>
 
-    <div class="section-title"><h2>Dernières offres enregistrées</h2><button class="btn secondary small" data-page="offres" type="button">Gérer mes offres</button></div>
+    <div class="section-title">
+      <h2>Dernières offres enregistrées</h2>
+      <button class="btn secondary small" data-page="offres" type="button">Gérer mes offres</button>
+    </div>
     <div class="offer-list" id="liste-promotions"></div>
   </section>
 
   <section class="page" id="page-offres">
-    <div class="section-title"><div><h2>Mes offres</h2><p class="muted">Enregistre les prix repérés sur les sites, catalogues ou en magasin.</p></div></div>
+    <div class="section-title">
+      <div>
+        <h2>Mes offres</h2>
+        <p class="muted">Enregistre les prix repérés sur les sites, catalogues ou en magasin.</p>
+      </div>
+    </div>
+
     <div class="notice success-notice">Astuce : compare des produits équivalents avec le prix par rouleau, par unité ou par kilo. Les offres sont conservées sur cet appareil.</div>
+
     <div class="panel">
       <h3>➕ Ajouter une offre</h3>
+
       <form id="form-offre">
         <div class="form-grid">
-          <div class="field"><label for="offre-produit">Nom du produit *</label><input id="offre-produit" required placeholder="Ex. : Papier toilette 12 rouleaux"></div>
-          <div class="field"><label for="offre-magasin">Magasin / site *</label>
+          <div class="field">
+            <label for="offre-produit">Nom du produit *</label>
+            <input id="offre-produit" required placeholder="Ex. : Papier toilette 12 rouleaux">
+          </div>
+
+          <div class="field">
+            <label for="offre-magasin">Magasin / site *</label>
             <select id="offre-magasin" required>
-              <option value="Carrefour">Carrefour</option><option value="Intermarché">Intermarché</option><option value="Action">Action</option><option value="Leclerc">E.Leclerc</option><option value="Lidl">Lidl</option><option value="Auchan">Auchan</option><option value="Amazon">Amazon</option><option value="Autre">Autre</option>
+              <option value="Carrefour">Carrefour</option>
+              <option value="Intermarché">Intermarché</option>
+              <option value="Action">Action</option>
+              <option value="Leclerc">E.Leclerc</option>
+              <option value="Lidl">Lidl</option>
+              <option value="Auchan">Auchan</option>
+              <option value="Amazon">Amazon</option>
+              <option value="Autre">Autre</option>
             </select>
           </div>
-          <div class="field"><label for="offre-prix">Prix total (€) *</label><input id="offre-prix" type="number" min="0.01" step="0.01" required placeholder="4,99"></div>
-          <div class="field"><label for="offre-quantite">Quantité dans le paquet *</label><input id="offre-quantite" type="number" min="0.01" step="0.01" value="1" required></div>
-          <div class="field"><label for="offre-unite">Unité de comparaison</label><select id="offre-unite"><option value="unité">unité</option><option value="rouleau">rouleau</option><option value="kg">kg</option><option value="g">g</option><option value="L">L</option><option value="mL">mL</option><option value="lavage">lavage</option></select></div>
-          <div class="field"><label for="offre-fin">Fin de l'offre (facultatif)</label><input id="offre-fin" type="date"></div>
-          <div class="field full"><label for="offre-lien">Lien vers l'offre (facultatif)</label><input id="offre-lien" type="url" placeholder="https://..."></div>
-          <div class="field full"><label for="offre-notes">Notes (facultatif)</label><input id="offre-notes" placeholder="Ex. : carte fidélité obligatoire, lot de 2…"></div>
+
+          <div class="field">
+            <label for="offre-prix">Prix total (€) *</label>
+            <input id="offre-prix" type="number" min="0.01" step="0.01" required placeholder="4,99">
+          </div>
+
+          <div class="field">
+            <label for="offre-quantite">Quantité dans le paquet *</label>
+            <input id="offre-quantite" type="number" min="0.01" step="0.01" value="1" required>
+          </div>
+
+          <div class="field">
+            <label for="offre-unite">Unité de comparaison</label>
+            <select id="offre-unite">
+              <option value="unité">unité</option>
+              <option value="rouleau">rouleau</option>
+              <option value="kg">kg</option>
+              <option value="g">g</option>
+              <option value="L">L</option>
+              <option value="mL">mL</option>
+              <option value="lavage">lavage</option>
+            </select>
+          </div>
+
+          <div class="field">
+            <label for="offre-fin">Fin de l'offre (facultatif)</label>
+            <input id="offre-fin" type="date">
+          </div>
+
+          <div class="field full">
+            <label for="offre-lien">Lien vers l'offre (facultatif)</label>
+            <input id="offre-lien" type="url" placeholder="https://...">
+          </div>
+
+          <div class="field full">
+            <label for="offre-notes">Notes (facultatif)</label>
+            <input id="offre-notes" placeholder="Ex. : carte fidélité obligatoire, lot de 2…">
+          </div>
         </div>
+
         <div class="actions"><button class="btn" type="submit">Enregistrer l'offre</button></div>
       </form>
     </div>
+
     <div class="search-tools">
       <input id="filtre-offres" type="search" placeholder="Filtrer mes offres…">
-      <select id="filtre-magasin"><option value="">Tous les magasins</option><option>Carrefour</option><option>Intermarché</option><option>Action</option><option>Leclerc</option><option>Lidl</option><option>Auchan</option><option>Amazon</option><option>Autre</option></select>
+      <select id="filtre-magasin">
+        <option value="">Tous les magasins</option>
+        <option>Carrefour</option>
+        <option>Intermarché</option>
+        <option>Action</option>
+        <option>Leclerc</option>
+        <option>Lidl</option>
+        <option>Auchan</option>
+        <option>Amazon</option>
+        <option>Autre</option>
+      </select>
     </div>
+
     <div class="offer-list" id="mes-offres"></div>
     <div class="actions"><button class="btn danger" id="supprimer-toutes-offres" type="button">Supprimer toutes mes offres</button></div>
   </section>
 
   <section class="page" id="page-cartes">
-    <div class="section-title"><div><h2>Mes cartes de fidélité</h2><p class="muted">Conserve les noms et numéros de tes cartes sur cet appareil.</p></div></div>
+    <div class="section-title">
+      <div>
+        <h2>Mes cartes de fidélité</h2>
+        <p class="muted">Conserve les noms et numéros de tes cartes sur cet appareil.</p>
+      </div>
+    </div>
+
     <div class="panel">
       <h3>➕ Ajouter une carte</h3>
+
       <form id="form-carte">
         <div class="form-grid">
-          <div class="field"><label for="carte-enseigne">Enseigne *</label><input id="carte-enseigne" required placeholder="Ex. : Carrefour"></div>
-          <div class="field"><label for="carte-numero">Numéro de carte</label><input id="carte-numero" placeholder="Numéro ou identifiant"></div>
-          <div class="field"><label for="carte-couleur">Couleur de la carte</label><select id="carte-couleur"><option value="#176b4d">Vert</option><option value="#1767b2">Bleu</option><option value="#b93b3b">Rouge</option><option value="#8b5db7">Violet</option><option value="#d59b17">Jaune</option></select></div>
+          <div class="field">
+            <label for="carte-enseigne">Enseigne *</label>
+            <input id="carte-enseigne" required placeholder="Ex. : Carrefour">
+          </div>
+
+          <div class="field">
+            <label for="carte-numero">Numéro de carte</label>
+            <input id="carte-numero" placeholder="Numéro ou identifiant">
+          </div>
+
+          <div class="field">
+            <label for="carte-couleur">Couleur de la carte</label>
+            <select id="carte-couleur">
+              <option value="#176b4d">Vert</option>
+              <option value="#1767b2">Bleu</option>
+              <option value="#b93b3b">Rouge</option>
+              <option value="#8b5db7">Violet</option>
+              <option value="#d59b17">Jaune</option>
+            </select>
+          </div>
         </div>
+
         <div class="actions"><button class="btn" type="submit">Enregistrer la carte</button></div>
       </form>
     </div>
+
     <div class="grid" id="liste-cartes"></div>
     <div class="empty" id="cartes-empty" hidden>Aucune carte enregistrée pour le moment.</div>
   </section>
 
   <section class="page" id="page-courses">
-    <div class="section-title"><div><h2>Ma liste de courses</h2><p class="muted">Ajoute les produits à acheter et coche-les en faisant tes courses.</p></div></div>
+    <div class="section-title">
+      <div>
+        <h2>Ma liste de courses</h2>
+        <p class="muted">Ajoute les produits à acheter et coche-les en faisant tes courses.</p>
+      </div>
+    </div>
+
     <div class="panel">
       <form id="form-course">
         <div class="form-grid">
-          <div class="field"><label for="course-name">Produit *</label><input id="course-name" required placeholder="Ex. : Papier toilette"></div>
-          <div class="field"><label for="course-quantity">Quantité</label><input id="course-quantity" type="number" min="1" step="1" value="1"></div>
-          <div class="field"><label for="course-category">Catégorie</label><select id="course-category"><option>Épicerie</option><option>Frais</option><option>Hygiène</option><option>Entretien</option><option>Bébé</option><option>Autre</option></select></div>
+          <div class="field">
+            <label for="course-name">Produit *</label>
+            <input id="course-name" required placeholder="Ex. : Papier toilette">
+          </div>
+
+          <div class="field">
+            <label for="course-quantity">Quantité</label>
+            <input id="course-quantity" type="number" min="1" step="1" value="1">
+          </div>
+
+          <div class="field">
+            <label for="course-category">Catégorie</label>
+            <select id="course-category">
+              <option>Épicerie</option>
+              <option>Frais</option>
+              <option>Hygiène</option>
+              <option>Entretien</option>
+              <option>Bébé</option>
+              <option>Autre</option>
+            </select>
+          </div>
         </div>
+
         <div class="actions"><button class="btn" type="submit">Ajouter à ma liste</button></div>
       </form>
-      <div class="section-title"><h3>Progression</h3><span id="courses-progress">0 / 0 acheté</span></div>
-      <div class="progress-track"><div class="progress-bar" id="courses-progress-bar"></div></div>
+
+      <div class="section-title">
+        <h3>Progression</h3>
+        <span id="courses-progress">0 / 0 acheté</span>
+      </div>
+
+      <div class="progress-track">
+        <div class="progress-bar" id="courses-progress-bar"></div>
+      </div>
     </div>
+
     <div class="panel">
+      <!-- NOUVELLE BARRE DE RECHERCHE -->
+      <div class="course-search">
+        <label for="recherche-courses"><strong>🔎 Rechercher un produit par son nom</strong></label>
+        <input
+          id="recherche-courses"
+          type="search"
+          placeholder="Ex. : lait, pâtes, papier toilette…"
+          autocomplete="off"
+          aria-label="Rechercher un produit dans la liste de courses"
+        >
+        <p class="course-search-hint">Les résultats s'affichent pendant que tu tapes.</p>
+      </div>
+
       <div id="liste-courses"></div>
+
       <div class="empty" id="courses-empty">Ta liste de courses est vide.</div>
-      <div class="actions"><button class="btn secondary" id="clear-checked" type="button">Supprimer les articles cochés</button></div>
+
+      <div class="empty" id="courses-no-results" hidden>
+        Aucun produit ne correspond à ta recherche.
+      </div>
+
+      <div class="actions">
+        <button class="btn secondary" id="clear-checked" type="button">Supprimer les articles cochés</button>
+      </div>
     </div>
   </section>
 </main>
 
 <footer>BonPlan · Comparer les prix, mieux choisir · <span id="current-year"></span></footer>
+
 <div id="toast" role="status" aria-live="polite"></div>
+
 <script src="./app.js"></script>
+
+<script>
+(() => {
+  const searchInput = document.getElementById("recherche-courses");
+  const list = document.getElementById("liste-courses");
+  const emptyMessage = document.getElementById("courses-empty");
+  const noResults = document.getElementById("courses-no-results");
+
+  if (!searchInput || !list) return;
+
+  function normalize(text) {
+    return String(text || "")
+      .toLocaleLowerCase("fr")
+      .normalize("NFD")
+      .replace(/[\u0300-\u036f]/g, "")
+      .trim();
+  }
+
+  function filterCourses() {
+    const query = normalize(searchInput.value);
+    const rows = list.querySelectorAll(".course-row");
+    let visibleCount = 0;
+
+    rows.forEach(row => {
+      const matches = normalize(row.textContent).includes(query);
+      row.hidden = !matches;
+
+      if (matches) visibleCount++;
+    });
+
+    const hasProducts = rows.length > 0;
+    const searching = query.length > 0;
+
+    if (emptyMessage) {
+      emptyMessage.hidden = hasProducts || searching;
+    }
+
+    if (noResults) {
+      noResults.hidden = !hasProducts || !searching || visibleCount > 0;
+    }
+  }
+
+  searchInput.addEventListener("input", filterCourses);
+
+  const observer = new MutationObserver(filterCourses);
+
+  observer.observe(list, {
+    childList: true,
+    subtree: true,
+    characterData: true
+  });
+
+  filterCourses();
+})();
+</script>
+
 </body>
 </html>
