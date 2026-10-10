@@ -1,0 +1,41 @@
+
+name: Collecte automatique Carrefour
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "30 5 * * *"
+
+permissions:
+  contents: write
+
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Récupérer le dépôt
+        uses: actions/checkout@v4
+
+      - name: Installer Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Installer les dépendances
+        run: pip install requests beautifulsoup4
+
+      - name: Collecter les promotions Carrefour
+        run: python scripts/collect_carrefour.py
+
+      - name: Enregistrer les données actualisées
+        run: |
+          if ! git diff --quiet -- data/promotions.json; then
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add data/promotions.json
+            git commit -m "Actualiser les promotions Carrefour"
+            git push
+          else
+            echo "Aucune modification des promotions."
+          fi
