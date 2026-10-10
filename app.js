@@ -3,7 +3,7 @@
 
 /* =========================================================
    BONPLAN — Comparateur de courses
-   Version 2 : calcul réel des promotions
+   Cartes de fidélité avec affichage du code-barres
    Les données restent dans le navigateur.
    ========================================================= */
 
@@ -46,6 +46,7 @@ if (!Array.isArray(offers)) offers = [];
 
 let lastSearch = "";
 let toastTimer;
+let barcodeLibraryPromise = null;
 
 function escapeHTML(value) {
   return String(value ?? "").replace(/[&<>"']/g, (char) => ({
@@ -74,7 +75,10 @@ function money(value) {
 
 function showToast(message) {
   const toast = $("#toast");
-  if (!toast) return;
+  if (!toast) {
+    console.log(message);
+    return;
+  }
 
   toast.textContent = message;
   toast.classList.add("show");
@@ -106,10 +110,13 @@ function saveOffers() {
 }
 
 function updateStats() {
-  $("#stat-cartes").textContent = cards.length;
-  $("#stat-offres").textContent = offers.length;
-  $("#stat-courses").textContent =
-    courses.filter((item) => !item.checked).length;
+  if ($("#stat-cartes")) $("#stat-cartes").textContent = cards.length;
+  if ($("#stat-offres")) $("#stat-offres").textContent = offers.length;
+
+  if ($("#stat-courses")) {
+    $("#stat-courses").textContent =
+      courses.filter((item) => !item.checked).length;
+  }
 }
 
 function navigate(pageName) {
@@ -141,7 +148,6 @@ document.addEventListener("click", (event) => {
     return;
   }
 
-  /* NOUVEAU : ajouter un résultat du comparateur aux courses */
   const comparisonButton = event.target.closest("[data-add-comparison]");
 
   if (comparisonButton) {
@@ -155,6 +161,18 @@ document.addEventListener("click", (event) => {
     }
 
     addComparedProduct(store, comparison);
+    return;
+  }
+
+  const showCardButton = event.target.closest("[data-show-card]");
+
+  if (showCardButton) {
+    const id = showCardButton.dataset.showCard;
+    const card = cards.find(
+      (item) => String(item.id) === String(id)
+    );
+
+    if (card) showLoyaltyCard(card);
     return;
   }
 
@@ -214,16 +232,26 @@ $("#mobile-menu")?.addEventListener("click", () => {
 $("#form-carte")?.addEventListener("submit", (event) => {
   event.preventDefault();
 
-  const store = $("#carte-enseigne").value.trim();
-  const number = $("#carte-numero").value.trim();
-  const color = $("#carte-couleur").value;
+  const store = $("#carte-enseigne")?.value.trim();
+  const number = $("#carte-numero")?.value.trim();
+  const color = $("#carte-couleur")?.value || "#176b4d";
 
   if (!store) {
     showToast("Indique le nom de l'enseigne.");
     return;
   }
 
-  cards.unshift({ id: Date.now(), store, number, color });
+  if (!number) {
+    showToast("Saisis le numéro de ta carte.");
+    return;
+  }
+
+  cards.unshift({
+    id: Date.now(),
+    store,
+    number,
+    color
+  });
 
   if (!writeStorage(STORAGE.cards, cards)) {
     cards.shift();
@@ -258,12 +286,212 @@ function renderCards() {
           </div>
         </div>
       </div>
+
       <div class="actions">
+        <button class="btn small" type="button"
+          data-show-card="${escapeHTML(card.id)}">
+          ▤ Afficher ma carte
+        </button>
+
         <button class="btn danger small" type="button"
-          data-delete-card="${escapeHTML(card.id)}">Supprimer</button>
+          data-delete-card="${escapeHTML(card.id)}">
+          Supprimer
+        </button>
       </div>
     </div>
   `).join("");
+}
+
+/* =========================================================
+   GÉNÉRATEUR ET AFFICHAGE DU CODE-BARRES
+   ========================================================= */
+
+function loadBarcodeLibrary() {
+  if (window.JsBarcode) return Promise.resolve(true);
+  if (barcodeLibraryPromise) return barcodeLibraryPromise;
+
+  barcodeLibraryPromise = new Promise((resolve) => {
+    const script = document.createElement("script");
+
+    script.src =
+      "https://cdn.jsdelivr.net/npm/jsbarcode@3.12.1/dist/JsBarcode.all.min.js";
+
+    script.onload = () => {
+      resolve(typeof window.JsBarcode === "function");
+    };
+
+    script.onerror = () => {
+      barcodeLibraryPromise = null;
+      resolve(false);
+    };
+
+    document.head.appendChild(script);
+  });
+
+  return barcodeLibraryPromise;
+}
+
+function closeCardViewer() {
+  document.getElementById("bonplan-card-viewer")?.remove();
+}
+
+function showLoyaltyCard(card) {
+  const number = String(card.number || "").replace(/\s+/g, "");
+
+  if (!number) {
+    showToast("Aucun numéro n'est enregistré pour cette carte.");
+    return;
+  }
+
+  if (!/^[0-9A-Za-z-]+$/.test(number)) {
+    showToast("Le numéro contient des caractères non pris en charge.");
+    return;
+  }
+
+  closeCardViewer();
+
+  const modal = document.createElement("div");
+  modal.id = "bonplan-card-viewer";
+
+  Object.assign(modal.style, {
+    position: "fixed",
+    inset: "0",
+    zIndex: "99999",
+    background: "rgba(0,0,0,0.92)",
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
+    padding: "16px",
+    overflowY: "auto",
+    boxSizing: "border-box"
+  });
+
+  modal.innerHTML = `
+    <div style="
+      background:#fff;
+      color:#171717;
+      border-radius:18px;
+      padding:22px 16px;
+      max-width:480px;
+      width:100%;
+      text-align:center;
+      box-sizing:border-box;
+      box-shadow:0 10px 40px rgba(0,0,0,.3)">
+
+      <button id="bonplan-close-card" type="button"
+        aria-label="Fermer la carte"
+        style="float:right;border:0;border-radius:8px;
+        padding:9px 13px;background:#eee;font-size:20px">
+        ✕
+      </button>
+
+      <div style="clear:both"></div>
+
+      <h2 id="bonplan-card-store"
+        style="font-size:26px;margin:14px 0"></h2>
+
+      <p style="font-size:14px;color:#555">
+        Présente ta carte au lecteur en caisse.
+      </p>
+
+      <div id="bonplan-barcode-area"
+        style="background:#fff;padding:16px 0;min-height:100px">
+        <p>Préparation du code-barres…</p>
+      </div>
+
+      <p id="bonplan-card-number"
+        style="font-size:20px;font-weight:bold;letter-spacing:2px;
+        overflow-wrap:anywhere;margin:8px 0 20px"></p>
+
+      <p id="bonplan-barcode-error"
+        style="color:#b42318;font-size:14px"></p>
+
+      <button id="bonplan-close-card-bottom" type="button"
+        style="border:0;border-radius:10px;padding:14px 20px;
+        background:#176b4d;color:#fff;font-size:17px;width:100%">
+        Fermer
+      </button>
+
+      <p style="font-size:12px;color:#666;margin-top:14px">
+        Le code généré doit correspondre au format officiel de ta carte.
+        Vérifie-le en magasin avant de compter dessus.
+      </p>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  $("#bonplan-card-store").textContent = card.store;
+  $("#bonplan-card-number").textContent = number;
+
+  $("#bonplan-close-card").addEventListener("click", closeCardViewer);
+  $("#bonplan-close-card-bottom").addEventListener("click", closeCardViewer);
+
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) closeCardViewer();
+  });
+
+  document.addEventListener("keydown", function closeOnEscape(event) {
+    if (event.key === "Escape") {
+      closeCardViewer();
+      document.removeEventListener("keydown", closeOnEscape);
+    }
+  });
+
+  loadBarcodeLibrary().then((ready) => {
+    if (!document.getElementById("bonplan-card-viewer")) return;
+
+    const area = $("#bonplan-barcode-area");
+    if (!area) return;
+
+    if (!ready) {
+      area.innerHTML = `
+        <p style="color:#b42318">
+          Impossible de charger le générateur. Vérifie ta connexion Internet.
+        </p>
+      `;
+      return;
+    }
+
+    area.innerHTML = '<svg id="bonplan-card-barcode"></svg>';
+
+    let format = "CODE128";
+
+    if (/^\d{13}$/.test(number)) {
+      format = "EAN13";
+    } else if (/^\d{8}$/.test(number)) {
+      format = "EAN8";
+    }
+
+    try {
+      window.JsBarcode("#bonplan-card-barcode", number, {
+        format,
+        displayValue: false,
+        margin: 8,
+        height: 100,
+        width: 2,
+        background: "#ffffff",
+        lineColor: "#000000"
+      });
+
+      const svg = $("#bonplan-card-barcode");
+
+      if (svg) {
+        svg.setAttribute("width", "100%");
+        svg.style.maxWidth = "360px";
+        svg.style.height = "auto";
+      }
+    } catch (error) {
+      console.error("Génération du code-barres impossible :", error);
+
+      area.innerHTML = `
+        <p style="color:#b42318">
+          Ce numéro ne peut pas être encodé avec le format choisi.
+          Vérifie le numéro et le format de ta carte.
+        </p>
+      `;
+    }
+  });
 }
 
 /* =========================================================
@@ -273,9 +501,9 @@ function renderCards() {
 $("#form-course")?.addEventListener("submit", (event) => {
   event.preventDefault();
 
-  const name = $("#course-name").value.trim();
-  const quantity = Math.max(1, Number($("#course-quantity").value) || 1);
-  const category = $("#course-category").value;
+  const name = $("#course-name")?.value.trim();
+  const quantity = Math.max(1, Number($("#course-quantity")?.value) || 1);
+  const category = $("#course-category")?.value || "Autre";
 
   if (!name) return;
 
@@ -318,7 +546,6 @@ function addCourse(name, quantity = 1, category = "Autre") {
   showToast("Article ajouté à la liste.");
 }
 
-/* NOUVEAU : ajout depuis le comparateur */
 function addComparedProduct(store, comparison) {
   if (!lastSearch || !lastSearch.trim()) {
     showToast("Recherche d'abord un produit.");
@@ -327,7 +554,6 @@ function addComparedProduct(store, comparison) {
 
   const productName = lastSearch.trim();
   const quantity = Math.max(1, Number(comparison.packs) || 1);
-
   const previousCourses = JSON.parse(JSON.stringify(courses));
 
   const existing = courses.find((item) =>
@@ -401,14 +627,18 @@ function renderCourses() {
       <input type="checkbox" aria-label="Article acheté"
         data-check-course="${escapeHTML(item.id)}"
         ${item.checked ? "checked" : ""}>
+
       <div class="course-name ${item.checked ? "checked" : ""}">
         <strong>${escapeHTML(item.name)}</strong>
         <div class="muted small-text">
           ${escapeHTML(item.category || "Autre")} · Quantité : ${escapeHTML(item.quantity || 1)}
         </div>
       </div>
+
       <button class="btn secondary small" type="button"
-        data-add-course="${escapeHTML(item.name)}" title="Ajouter une quantité">+1</button>
+        data-add-course="${escapeHTML(item.name)}"
+        title="Ajouter une quantité">+1</button>
+
       <button class="btn danger small" type="button"
         data-delete-course="${escapeHTML(item.id)}">✕</button>
     </div>
@@ -418,10 +648,14 @@ function renderCourses() {
   const checked = courses.filter((item) => item.checked).length;
   const progress = total ? Math.round((checked / total) * 100) : 0;
 
-  $("#courses-progress").textContent =
-    `${checked} / ${total} acheté${total > 1 ? "s" : ""}`;
+  if ($("#courses-progress")) {
+    $("#courses-progress").textContent =
+      `${checked} / ${total} acheté${total > 1 ? "s" : ""}`;
+  }
 
-  $("#courses-progress-bar").style.width = progress + "%";
+  if ($("#courses-progress-bar")) {
+    $("#courses-progress-bar").style.width = progress + "%";
+  }
 }
 
 /* =========================================================
@@ -571,6 +805,7 @@ function ensureComparePanel() {
   searches.insertAdjacentHTML("beforebegin", `
     <section class="panel" id="compare-prices-panel">
       <h3>⚖️ Comparer Carrefour et Intermarché</h3>
+
       <p class="muted small-text">
         Saisis le prix affiché, le contenu de chaque paquet et le nombre
         de paquets achetés. Choisis ensuite la promotion appliquée.
@@ -612,17 +847,14 @@ function ensureComparePanel() {
           </div>
 
           <div class="field" style="margin-top:10px">
-            <label for="compare-carrefour-promo-value">
-              Valeur de la promotion
-            </label>
+            <label for="compare-carrefour-promo-value">Valeur de la promotion</label>
             <input id="compare-carrefour-promo-value" type="number"
               min="0" step="0.01" placeholder="Ex. : 30 pour -30 %, ou 5 pour 2 à 5 €">
             <span class="muted small-text">
-              Utilisée selon la promotion choisie. Pour « 2e à -50 % », laisse vide.
+              Pour « 2e à -50 % », laisse vide.
             </span>
           </div>
 
-          <!-- NOUVEAU BOUTON CARREFOUR -->
           <button class="btn" type="button"
             data-add-comparison="Carrefour"
             style="margin-top:14px;width:100%">
@@ -663,17 +895,14 @@ function ensureComparePanel() {
           </div>
 
           <div class="field" style="margin-top:10px">
-            <label for="compare-intermarche-promo-value">
-              Valeur de la promotion
-            </label>
+            <label for="compare-intermarche-promo-value">Valeur de la promotion</label>
             <input id="compare-intermarche-promo-value" type="number"
               min="0" step="0.01" placeholder="Ex. : 30 pour -30 %, ou 5 pour 2 à 5 €">
             <span class="muted small-text">
-              Utilisée selon la promotion choisie. Pour « 2e à -50 % », laisse vide.
+              Pour « 2e à -50 % », laisse vide.
             </span>
           </div>
 
-          <!-- NOUVEAU BOUTON INTERMARCHÉ -->
           <button class="btn" type="button"
             data-add-comparison="Intermarché"
             style="margin-top:14px;width:100%">
@@ -709,11 +938,11 @@ function ensureComparePanel() {
     </section>
   `);
 
-  $("#compare-prices-button").addEventListener("click", () => {
+  $("#compare-prices-button")?.addEventListener("click", () => {
     comparePrices(false);
   });
 
-  $("#save-comparison-button").addEventListener("click", () => {
+  $("#save-comparison-button")?.addEventListener("click", () => {
     comparePrices(true);
   });
 }
@@ -764,11 +993,11 @@ function calculatePromotion(price, packs, type, value) {
 }
 
 function getComparisonStore(prefix) {
-  const price = Number($(`#compare-${prefix}-price`).value);
-  const quantity = Number($(`#compare-${prefix}-quantity`).value);
-  const packs = Number($(`#compare-${prefix}-packs`).value);
-  const promo = $(`#compare-${prefix}-promo`).value;
-  const rawValue = $(`#compare-${prefix}-promo-value`).value;
+  const price = Number($(`#compare-${prefix}-price`)?.value);
+  const quantity = Number($(`#compare-${prefix}-quantity`)?.value);
+  const packs = Number($(`#compare-${prefix}-packs`)?.value);
+  const promo = $(`#compare-${prefix}-promo`)?.value;
+  const rawValue = $(`#compare-${prefix}-promo-value`)?.value ?? "";
   const value = rawValue === "" ? 0 : Number(rawValue);
 
   if (
@@ -824,7 +1053,7 @@ function comparePrices(save = false) {
 
   const carrefour = getComparisonStore("carrefour");
   const intermarche = getComparisonStore("intermarche");
-  const unit = $("#compare-unit").value;
+  const unit = $("#compare-unit")?.value || "unité";
   const result = $("#compare-prices-result");
 
   if (carrefour.error || intermarche.error) {
@@ -853,6 +1082,7 @@ function comparePrices(save = false) {
     ? `<p>Économie Intermarché : <strong>${money(intermarche.savings)}</strong></p>`
     : "";
 
+  if (!result) return;
   result.hidden = false;
 
   result.innerHTML = `
@@ -962,10 +1192,12 @@ function performSearch(query, zone = "both") {
 
   lastSearch = query;
 
-  $("#recherche-produit").value = query;
-  $("#recherche-zone").value = zone;
-  $("#zone-resultats").hidden = false;
-  $("#titre-resultats").textContent = `Résultats pour « ${query} »`;
+  if ($("#recherche-produit")) $("#recherche-produit").value = query;
+  if ($("#recherche-zone")) $("#recherche-zone").value = zone;
+  if ($("#zone-resultats")) $("#zone-resultats").hidden = false;
+  if ($("#titre-resultats")) {
+    $("#titre-resultats").textContent = `Résultats pour « ${query} »`;
+  }
 
   createExternalSearches(query, zone);
   renderSearchResults(query);
@@ -976,14 +1208,14 @@ $("#form-recherche")?.addEventListener("submit", (event) => {
   event.preventDefault();
 
   performSearch(
-    $("#recherche-produit").value,
-    $("#recherche-zone").value
+    $("#recherche-produit")?.value,
+    $("#recherche-zone")?.value || "both"
   );
 });
 
 $("#form-recherche-accueil")?.addEventListener("submit", (event) => {
   event.preventDefault();
-  performSearch($("#recherche-accueil").value, "both");
+  performSearch($("#recherche-accueil")?.value, "both");
 });
 
 $("#recherche-zone")?.addEventListener("change", () => {
@@ -997,10 +1229,11 @@ $("#recherche-tri")?.addEventListener("change", () => {
 });
 
 $("#effacer-recherche")?.addEventListener("click", () => {
-  $("#recherche-produit").value = "";
+  if ($("#recherche-produit")) $("#recherche-produit").value = "";
   lastSearch = "";
-  $("#zone-resultats").hidden = true;
-  $("#resultats-comparateur").innerHTML = "";
+
+  if ($("#zone-resultats")) $("#zone-resultats").hidden = true;
+  if ($("#resultats-comparateur")) $("#resultats-comparateur").innerHTML = "";
 });
 
 /* =========================================================
@@ -1134,14 +1367,14 @@ function renderSearchResults(query) {
 $("#form-offre")?.addEventListener("submit", (event) => {
   event.preventDefault();
 
-  const product = $("#offre-produit").value.trim();
-  const store = $("#offre-magasin").value;
-  const price = Number($("#offre-prix").value);
-  const quantity = Number($("#offre-quantite").value);
-  const unit = $("#offre-unite").value;
-  const endDate = $("#offre-fin").value;
-  const rawURL = $("#offre-lien").value.trim();
-  const notes = $("#offre-notes").value.trim();
+  const product = $("#offre-produit")?.value.trim();
+  const store = $("#offre-magasin")?.value;
+  const price = Number($("#offre-prix")?.value);
+  const quantity = Number($("#offre-quantite")?.value);
+  const unit = $("#offre-unite")?.value || "unité";
+  const endDate = $("#offre-fin")?.value || "";
+  const rawURL = $("#offre-lien")?.value.trim() || "";
+  const notes = $("#offre-notes")?.value.trim() || "";
 
   if (
     !product ||
@@ -1187,7 +1420,7 @@ $("#form-offre")?.addEventListener("submit", (event) => {
   }
 
   $("#form-offre").reset();
-  $("#offre-quantite").value = "1";
+  if ($("#offre-quantite")) $("#offre-quantite").value = "1";
 
   renderOffers();
   renderLatestOffers();
@@ -1274,7 +1507,9 @@ function renderLatestOffers() {
    INITIALISATION
    ========================================================= */
 
-$("#current-year").textContent = new Date().getFullYear();
+if ($("#current-year")) {
+  $("#current-year").textContent = new Date().getFullYear();
+}
 
 renderCards();
 renderCourses();
@@ -1282,4 +1517,4 @@ renderOffers();
 renderLatestOffers();
 updateStats();
 
-console.log("BonPlan chargé : comparateur et ajout aux courses activés.");
+console.log("BonPlan chargé : cartes, comparateur et courses activés.");
