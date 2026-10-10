@@ -141,6 +141,23 @@ document.addEventListener("click", (event) => {
     return;
   }
 
+  /* NOUVEAU : ajouter un résultat du comparateur aux courses */
+  const comparisonButton = event.target.closest("[data-add-comparison]");
+
+  if (comparisonButton) {
+    const store = comparisonButton.dataset.addComparison;
+    const prefix = store === "Carrefour" ? "carrefour" : "intermarche";
+    const comparison = getComparisonStore(prefix);
+
+    if (comparison.error) {
+      showToast(comparison.error);
+      return;
+    }
+
+    addComparedProduct(store, comparison);
+    return;
+  }
+
   const deleteCardButton = event.target.closest("[data-delete-card]");
 
   if (deleteCardButton) {
@@ -276,17 +293,19 @@ function addCourse(name, quantity = 1, category = "Autre") {
     return;
   }
 
+  const amount = Math.max(1, Number(quantity) || 1);
+
   const existing = courses.find((item) =>
     normalize(item.name) === normalize(cleanName) && !item.checked
   );
 
   if (existing) {
-    existing.quantity = (Number(existing.quantity) || 1) + quantity;
+    existing.quantity = (Number(existing.quantity) || 1) + amount;
   } else {
     courses.unshift({
       id: Date.now() + Math.random(),
       name: cleanName,
-      quantity,
+      quantity: amount,
       category,
       checked: false
     });
@@ -297,6 +316,49 @@ function addCourse(name, quantity = 1, category = "Autre") {
   renderCourses();
   updateStats();
   showToast("Article ajouté à la liste.");
+}
+
+/* NOUVEAU : ajout depuis le comparateur */
+function addComparedProduct(store, comparison) {
+  if (!lastSearch || !lastSearch.trim()) {
+    showToast("Recherche d'abord un produit.");
+    return;
+  }
+
+  const productName = lastSearch.trim();
+  const quantity = Math.max(1, Number(comparison.packs) || 1);
+
+  const previousCourses = JSON.parse(JSON.stringify(courses));
+
+  const existing = courses.find((item) =>
+    normalize(item.name) === normalize(productName) && !item.checked
+  );
+
+  if (existing) {
+    existing.quantity = (Number(existing.quantity) || 1) + quantity;
+  } else {
+    courses.unshift({
+      id: Date.now() + Math.random(),
+      name: productName,
+      quantity,
+      category: "Autre",
+      checked: false
+    });
+  }
+
+  if (!writeStorage(STORAGE.courses, courses)) {
+    courses = previousCourses;
+    return;
+  }
+
+  renderCourses();
+  updateStats();
+
+  showToast(
+    `${productName} ajouté aux courses : ${quantity} paquet(s) (${store}).`
+  );
+
+  navigate("courses");
 }
 
 document.addEventListener("change", (event) => {
@@ -559,6 +621,13 @@ function ensureComparePanel() {
               Utilisée selon la promotion choisie. Pour « 2e à -50 % », laisse vide.
             </span>
           </div>
+
+          <!-- NOUVEAU BOUTON CARREFOUR -->
+          <button class="btn" type="button"
+            data-add-comparison="Carrefour"
+            style="margin-top:14px;width:100%">
+            🛒 Ajouter à ma liste de courses
+          </button>
         </div>
 
         <div class="card" style="border-top:4px solid #c73535">
@@ -603,6 +672,13 @@ function ensureComparePanel() {
               Utilisée selon la promotion choisie. Pour « 2e à -50 % », laisse vide.
             </span>
           </div>
+
+          <!-- NOUVEAU BOUTON INTERMARCHÉ -->
+          <button class="btn" type="button"
+            data-add-comparison="Intermarché"
+            style="margin-top:14px;width:100%">
+            🛒 Ajouter à ma liste de courses
+          </button>
         </div>
       </div>
 
@@ -641,22 +717,6 @@ function ensureComparePanel() {
     comparePrices(true);
   });
 }
-
-/*
-  Calcule le prix total payé en tenant compte de la promotion.
-
-  second50 :
-  2e paquet à -50 %, sur les paires de paquets.
-
-  percent :
-  pourcentage de remise appliqué à chaque paquet.
-
-  fixed :
-  montant retiré du total de l'achat.
-
-  bundle2 :
-  prix spécial pour chaque lot de 2 paquets.
-*/
 
 function promotionDescription(type, value) {
   switch (type) {
@@ -716,19 +776,27 @@ function getComparisonStore(prefix) {
     !Number.isFinite(quantity) || quantity <= 0 ||
     !Number.isInteger(packs) || packs < 1
   ) {
-    return { error: "Vérifie le prix, le contenu du paquet et le nombre de paquets." };
+    return {
+      error: "Vérifie le prix, le contenu du paquet et le nombre de paquets."
+    };
   }
 
   if (promo === "percent" && (value < 0 || value > 100)) {
-    return { error: "Le pourcentage de réduction doit être compris entre 0 et 100." };
+    return {
+      error: "Le pourcentage de réduction doit être compris entre 0 et 100."
+    };
   }
 
   if ((promo === "fixed" || promo === "bundle2") && (!rawValue || value < 0)) {
-    return { error: "Renseigne la valeur de la promotion choisie." };
+    return {
+      error: "Renseigne la valeur de la promotion choisie."
+    };
   }
 
   if (promo === "bundle2" && value <= 0) {
-    return { error: "Le prix du lot de deux paquets doit être supérieur à zéro." };
+    return {
+      error: "Le prix du lot de deux paquets doit être supérieur à zéro."
+    };
   }
 
   const calculation = calculatePromotion(price, packs, promo, value);
@@ -799,6 +867,10 @@ function comparePrices(save = false) {
         ${carrefourSavings}
         <p>Quantité totale : ${carrefour.totalQuantity} ${escapeHTML(unit)}</p>
         <p>Prix par ${escapeHTML(unit)} : <strong>${money(carrefour.unitPrice)}</strong></p>
+        <button class="btn" type="button"
+          data-add-comparison="Carrefour" style="width:100%;margin-top:10px">
+          🛒 Ajouter ${carrefour.packs} paquet(s) aux courses
+        </button>
       </div>
 
       <div class="card">
@@ -809,6 +881,10 @@ function comparePrices(save = false) {
         ${intermarcheSavings}
         <p>Quantité totale : ${intermarche.totalQuantity} ${escapeHTML(unit)}</p>
         <p>Prix par ${escapeHTML(unit)} : <strong>${money(intermarche.unitPrice)}</strong></p>
+        <button class="btn" type="button"
+          data-add-comparison="Intermarché" style="width:100%;margin-top:10px">
+          🛒 Ajouter ${intermarche.packs} paquet(s) aux courses
+        </button>
       </div>
     </div>
 
@@ -1206,4 +1282,4 @@ renderOffers();
 renderLatestOffers();
 updateStats();
 
-console.log("BonPlan chargé : comparateur et calcul des promotions activés.");
+console.log("BonPlan chargé : comparateur et ajout aux courses activés.");
